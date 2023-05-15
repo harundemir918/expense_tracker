@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
 
 package org.harundemir.expensetracker.ui.views
 
@@ -22,22 +22,28 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults.centerAlignedTopAppBarColors
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.harundemir.expensetracker.ui.views.core.data.expensesList
 import org.harundemir.expensetracker.ui.views.core.models.Expense
 import org.harundemir.expensetracker.ui.views.ui.theme.ExpenseTrackerTheme
@@ -57,25 +63,40 @@ fun HomeActivityPreview() {
     ExpenseScaffold()
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpenseScaffold() {
-    Scaffold(
+    val sheetState = SheetState(
+        initialValue = SheetValue.Hidden,
+        skipPartiallyExpanded = true,
+    )
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = sheetState
+    )
+    val scope = rememberCoroutineScope()
+    BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        sheetContent = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp)
+            ) {}
+        },
+        sheetPeekHeight = 0.dp,
         topBar = {
             ExpenseAppBar()
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { /* Handle FAB click */ },
-                containerColor = Color(0xFF00BCD4),
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.White)
-            }
-        },
     ) { innerPadding ->
-        ExpenseBody(modifier = Modifier.padding(innerPadding))
+        ExpenseBody(
+            modifier = Modifier.padding(innerPadding),
+            scope = scope,
+            sheetState = sheetState,
+        )
     }
 }
 
+@ExperimentalMaterial3Api
 @Composable
 fun ExpenseAppBar() {
     CenterAlignedTopAppBar(
@@ -87,22 +108,36 @@ fun ExpenseAppBar() {
 }
 
 @Composable
-fun ExpenseBody(modifier: Modifier = Modifier) {
+fun ExpenseBody(modifier: Modifier = Modifier, scope: CoroutineScope, sheetState: SheetState) {
     ExpenseTrackerTheme {
         Surface(
             modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
         ) {
-            ExpenseBody()
-        }
-    }
-}
-
-@Composable
-fun ExpenseBody() {
-    Surface(modifier = Modifier.fillMaxWidth()) {
-        Column {
-            ExpenseInfo()
-            ExpenseList()
+            Box {
+                Surface(modifier = Modifier.fillMaxWidth()) {
+                    Column {
+                        ExpenseInfo()
+                        ExpenseList()
+                    }
+                }
+                FloatingActionButton(
+                    onClick = {
+                        scope.launch {
+                            if (!sheetState.isVisible) {
+                                sheetState.expand()
+                            } else {
+                                sheetState.hide()
+                            }
+                        }
+                    },
+                    containerColor = Color(0xFF00BCD4),
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.White)
+                }
+            }
         }
     }
 }
@@ -161,12 +196,9 @@ fun ExpenseListCard(expense: Expense) {
         ) {
             Row {
                 Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .background(
-                            color = Color(0xFF00BCD4),
-                            shape = CircleShape
-                        )
+                    contentAlignment = Alignment.Center, modifier = Modifier.background(
+                        color = Color(0xFF00BCD4), shape = CircleShape
+                    )
                 ) {
                     Icon(
                         Icons.Default.ShoppingCart,
