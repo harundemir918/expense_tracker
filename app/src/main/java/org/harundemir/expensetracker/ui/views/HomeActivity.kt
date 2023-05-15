@@ -5,15 +5,20 @@ package org.harundemir.expensetracker.ui.views
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -147,6 +152,7 @@ fun ExpenseList() {
 
 @Composable
 fun ExpenseListCard(expense: Expense) {
+    val valueColor = if (!expense.isExpense) Color.Green else Color.Red
     Surface(modifier = Modifier.fillMaxWidth()) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -154,13 +160,31 @@ fun ExpenseListCard(expense: Expense) {
             modifier = Modifier.padding(16.dp)
         ) {
             Row {
-                Icon(Icons.Default.ShoppingCart, contentDescription = "Expense Category Icon")
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .background(
+                            color = Color(0xFF00BCD4),
+                            shape = CircleShape
+                        )
+                ) {
+                    Icon(
+                        Icons.Default.ShoppingCart,
+                        contentDescription = "Expense Category Icon",
+                        tint = Color.White,
+                        modifier = Modifier.padding(8.dp),
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
                 Column() {
                     Text(text = expense.title)
-                    Text(text = expense.category)
+                    Text(text = expense.category, color = Color.Gray, fontSize = 12.sp)
                 }
             }
-            Text(text = expense.value.toString())
+            Text(
+                text = "${if (!expense.isExpense) "+" else "-"}${expense.value}",
+                color = valueColor,
+            )
         }
     }
 }
