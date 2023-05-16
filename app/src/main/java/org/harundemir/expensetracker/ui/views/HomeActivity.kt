@@ -1,11 +1,17 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
+@file:OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3Api::class
+)
 
 package org.harundemir.expensetracker.ui.views
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,10 +25,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -32,13 +42,24 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBarDefaults.centerAlignedTopAppBarColors
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -77,15 +98,24 @@ fun ExpenseScaffold() {
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetContent = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp)
-            ) {}
+            ExpenseAddBottomSheet(scope)
         },
         sheetPeekHeight = 0.dp,
         topBar = {
             ExpenseAppBar()
+        },
+        modifier = Modifier.pointerInput(Unit) {
+            detectTapGestures(
+                onTap = {
+                    scope.launch {
+                        if (!sheetState.isVisible) {
+                            sheetState.expand()
+                        } else {
+                            sheetState.hide()
+                        }
+                    }
+                },
+            )
         },
     ) { innerPadding ->
         ExpenseBody(
@@ -108,7 +138,11 @@ fun ExpenseAppBar() {
 }
 
 @Composable
-fun ExpenseBody(modifier: Modifier = Modifier, scope: CoroutineScope, sheetState: SheetState) {
+fun ExpenseBody(
+    modifier: Modifier = Modifier,
+    scope: CoroutineScope,
+    sheetState: SheetState,
+) {
     ExpenseTrackerTheme {
         Surface(
             modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
@@ -208,7 +242,7 @@ fun ExpenseListCard(expense: Expense) {
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                Column() {
+                Column {
                     Text(text = expense.title)
                     Text(text = expense.category, color = Color.Gray, fontSize = 12.sp)
                 }
@@ -218,5 +252,129 @@ fun ExpenseListCard(expense: Expense) {
                 color = valueColor,
             )
         }
+    }
+}
+
+@Composable
+fun ExpenseAddBottomSheet(scope: CoroutineScope) {
+    val focusManager = LocalFocusManager.current
+    var titleInput by remember { mutableStateOf("") }
+    var categoryInput by remember { mutableStateOf("") }
+    var valueInput by remember { mutableStateOf("") }
+    val expense by remember {
+        mutableStateOf(
+            Expense(
+                title = "",
+                category = "",
+                isExpense = true,
+                value = 0.0,
+            ),
+        )
+    }
+
+    Box(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()
+        ) {
+            ExpenseTextField(
+                label = "Title",
+                value = titleInput,
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    },
+                ),
+                onValueChange = {
+                    titleInput = it
+                    expense.title = titleInput
+                },
+            )
+            ExpenseTextField(
+                label = "Category",
+                value = categoryInput,
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    },
+                ),
+                onValueChange = {
+                    categoryInput = it
+                    expense.category = categoryInput
+                },
+            )
+            ExpenseTextField(
+                label = "Value",
+                value = valueInput,
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    },
+                ),
+                onValueChange = {
+                    valueInput = it
+                    expense.value = valueInput.toDouble()
+                    expense.isExpense =
+                        if (valueInput.isNotEmpty()) valueInput.toDouble() < 0 else false
+                },
+            )
+            ExpenseAddButton(
+                scope,
+                expense,
+            )
+        }
+    }
+}
+
+@Composable
+fun ExpenseTextField(
+    label: String, value: String, keyboardOptions: KeyboardOptions,
+    keyboardActions: KeyboardActions, onValueChange: (String) -> Unit,
+) {
+    TextField(
+        label = {
+            Text(text = label)
+        },
+        value = value,
+        onValueChange = onValueChange,
+        keyboardActions = keyboardActions,
+        keyboardOptions = keyboardOptions,
+        modifier = Modifier.padding(16.dp),
+    )
+}
+
+@Composable
+fun ExpenseAddButton(
+    scope: CoroutineScope,
+    expense: Expense,
+) {
+    val context = LocalContext.current
+    Button(
+        onClick = {
+            scope.launch {
+                expensesList.add(
+                    0,
+                    expense,
+                )
+            }
+            Toast.makeText(context, "Record has been added.", Toast.LENGTH_SHORT).show()
+        },
+        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BCD4)),
+        modifier = Modifier.padding(16.dp)
+    ) {
+        Text(text = "Add")
     }
 }

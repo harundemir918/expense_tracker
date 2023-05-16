@@ -1,8 +1,9 @@
 package org.harundemir.expensetracker.ui.views.core.data
 
+import androidx.compose.runtime.mutableStateListOf
 import org.harundemir.expensetracker.ui.views.core.models.Expense
 
-var expensesList: List<Expense> = mutableListOf(
+var expensesList: MutableList<Expense> = mutableStateListOf(
     Expense(title = "Soup", category = "Food-Drink", isExpense = true, value = 20.0),
     Expense(title = "Pixel 7", category = "Electronics", isExpense = true, value = 500.0),
     Expense(title = "Salary", category = "Income", isExpense = false, value = 3000.0),
