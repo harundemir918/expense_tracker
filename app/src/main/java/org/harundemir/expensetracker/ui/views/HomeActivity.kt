@@ -34,6 +34,7 @@ import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -205,7 +206,7 @@ fun ExpenseInfoSection(title: String, value: Double) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "\$$value", color = Color.White)
+        Text(text = "₺$value", color = Color.White)
         Text(text = title, color = Color.White, fontSize = 10.sp)
     }
 }
@@ -248,7 +249,7 @@ fun ExpenseListCard(expense: Expense) {
                 }
             }
             Text(
-                text = "${if (!expense.isExpense) "+" else "-"}${expense.value}",
+                text = "₺${expense.value}",
                 color = valueColor,
             )
         }
@@ -257,16 +258,20 @@ fun ExpenseListCard(expense: Expense) {
 
 @Composable
 fun ExpenseAddBottomSheet(scope: CoroutineScope) {
+    val context = LocalContext.current
+
     val focusManager = LocalFocusManager.current
     var titleInput by remember { mutableStateOf("") }
     var categoryInput by remember { mutableStateOf("") }
+    var isExpenseInput by remember { mutableStateOf(false) }
     var valueInput by remember { mutableStateOf("") }
+
     val expense by remember {
         mutableStateOf(
             Expense(
                 title = "",
                 category = "",
-                isExpense = true,
+                isExpense = false,
                 value = 0.0,
             ),
         )
@@ -312,6 +317,13 @@ fun ExpenseAddBottomSheet(scope: CoroutineScope) {
                     expense.category = categoryInput
                 },
             )
+            ExpenseCheckbox(
+                isExpenseInput = isExpenseInput,
+                onCheckedChange = {
+                    isExpenseInput = it
+                    expense.isExpense = isExpenseInput
+                },
+            )
             ExpenseTextField(
                 label = "Value",
                 value = valueInput,
@@ -327,13 +339,28 @@ fun ExpenseAddBottomSheet(scope: CoroutineScope) {
                 onValueChange = {
                     valueInput = it
                     expense.value = valueInput.toDouble()
-                    expense.isExpense =
-                        if (valueInput.isNotEmpty()) valueInput.toDouble() < 0 else false
                 },
             )
             ExpenseAddButton(
-                scope,
-                expense,
+                onClick = {
+                    scope.launch {
+                        expensesList.add(
+                            0,
+                            expense,
+                        )
+                    }
+                    Toast.makeText(context, "Record has been added.", Toast.LENGTH_SHORT).show()
+                    titleInput = ""
+                    categoryInput = ""
+                    valueInput = ""
+                    isExpenseInput = false
+                    Expense(
+                        title = "",
+                        category = "",
+                        isExpense = false,
+                        value = 0.0,
+                    )
+                }
             )
         }
     }
@@ -357,21 +384,27 @@ fun ExpenseTextField(
 }
 
 @Composable
+fun ExpenseCheckbox(isExpenseInput: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 24.dp)
+    ) {
+        Checkbox(
+            checked = isExpenseInput,
+            onCheckedChange = onCheckedChange,
+        )
+        Text(text = "Expense")
+    }
+}
+
+@Composable
 fun ExpenseAddButton(
-    scope: CoroutineScope,
-    expense: Expense,
+    onClick: () -> Unit,
 ) {
-    val context = LocalContext.current
     Button(
-        onClick = {
-            scope.launch {
-                expensesList.add(
-                    0,
-                    expense,
-                )
-            }
-            Toast.makeText(context, "Record has been added.", Toast.LENGTH_SHORT).show()
-        },
+        onClick = onClick,
         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BCD4)),
         modifier = Modifier.padding(16.dp)
     ) {
