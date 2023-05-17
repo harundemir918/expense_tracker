@@ -266,7 +266,7 @@ fun ExpenseAddBottomSheet(scope: CoroutineScope) {
     var isExpenseInput by remember { mutableStateOf(false) }
     var valueInput by remember { mutableStateOf("") }
 
-    val expense by remember {
+    val expense = remember {
         mutableStateOf(
             Expense(
                 title = "",
@@ -297,7 +297,7 @@ fun ExpenseAddBottomSheet(scope: CoroutineScope) {
                 ),
                 onValueChange = {
                     titleInput = it
-                    expense.title = titleInput
+                    expense.value.title = titleInput
                 },
             )
             ExpenseTextField(
@@ -314,14 +314,14 @@ fun ExpenseAddBottomSheet(scope: CoroutineScope) {
                 ),
                 onValueChange = {
                     categoryInput = it
-                    expense.category = categoryInput
+                    expense.value.category = categoryInput
                 },
             )
             ExpenseCheckbox(
                 isExpenseInput = isExpenseInput,
                 onCheckedChange = {
                     isExpenseInput = it
-                    expense.isExpense = isExpenseInput
+                    expense.value.isExpense = isExpenseInput
                 },
             )
             ExpenseTextField(
@@ -338,7 +338,7 @@ fun ExpenseAddBottomSheet(scope: CoroutineScope) {
                 ),
                 onValueChange = {
                     valueInput = it
-                    expense.value = valueInput.toDouble()
+                    expense.value.value = valueInput.toDouble()
                 },
             )
             ExpenseAddButton(
@@ -346,20 +346,20 @@ fun ExpenseAddBottomSheet(scope: CoroutineScope) {
                     scope.launch {
                         expensesList.add(
                             0,
-                            expense,
+                            expense.value,
+                        )
+                        Toast.makeText(context, "Record has been added.", Toast.LENGTH_SHORT).show()
+                        titleInput = ""
+                        categoryInput = ""
+                        valueInput = ""
+                        isExpenseInput = false
+                        expense.value = Expense(
+                            title = "",
+                            category = "",
+                            isExpense = false,
+                            value = 0.0,
                         )
                     }
-                    Toast.makeText(context, "Record has been added.", Toast.LENGTH_SHORT).show()
-                    titleInput = ""
-                    categoryInput = ""
-                    valueInput = ""
-                    isExpenseInput = false
-                    Expense(
-                        title = "",
-                        category = "",
-                        isExpense = false,
-                        value = 0.0,
-                    )
                 }
             )
         }
