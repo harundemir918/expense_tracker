@@ -1,7 +1,5 @@
 @file:OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3Api::class
+    ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class
 )
 
 package org.harundemir.expensetracker.ui.views
@@ -47,6 +45,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBarDefaults.centerAlignedTopAppBarColors
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -77,6 +76,20 @@ class HomeActivity : ComponentActivity() {
             ExpenseScaffold()
         }
     }
+}
+
+fun calculateExpenseInfo(
+    incomeState: MutableState<Double>,
+    expenseState: MutableState<Double>,
+    balanceState: MutableState<Double>,
+) {
+    val income = expensesList.filter { !it.isExpense }.sumOf { it.value }
+    val expense = expensesList.filter { it.isExpense }.sumOf { it.value }
+    val balance = income - expense
+
+    incomeState.value = income
+    expenseState.value = expense
+    balanceState.value = balance
 }
 
 @Preview(showBackground = true, showSystemUi = true)
@@ -188,6 +201,22 @@ fun ExpenseInfo() {
 
 @Composable
 fun ExpenseInfoRow() {
+    val incomeState = remember {
+        mutableStateOf(0.0)
+    }
+    val expenseState = remember {
+        mutableStateOf(0.0)
+    }
+    val balanceState = remember {
+        mutableStateOf(0.0)
+    }
+
+    calculateExpenseInfo(
+        incomeState,
+        expenseState,
+        balanceState,
+    )
+
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
@@ -195,9 +224,9 @@ fun ExpenseInfoRow() {
             .fillMaxWidth()
             .height(100.dp),
     ) {
-        ExpenseInfoSection(title = "INCOME", value = 800.0)
-        ExpenseInfoSection(title = "EXPENSE", value = 135.0)
-        ExpenseInfoSection(title = "BALANCE", value = 675.0)
+        ExpenseInfoSection(title = "INCOME", value = incomeState.value)
+        ExpenseInfoSection(title = "EXPENSE", value = expenseState.value)
+        ExpenseInfoSection(title = "BALANCE", value = balanceState.value)
     }
 }
 
@@ -287,8 +316,7 @@ fun ExpenseAddBottomSheet(scope: CoroutineScope) {
                 label = "Title",
                 value = titleInput,
                 keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Next
+                    keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
                 ),
                 keyboardActions = KeyboardActions(
                     onNext = {
@@ -304,8 +332,7 @@ fun ExpenseAddBottomSheet(scope: CoroutineScope) {
                 label = "Category",
                 value = categoryInput,
                 keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Next
+                    keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
                 ),
                 keyboardActions = KeyboardActions(
                     onNext = {
@@ -328,8 +355,7 @@ fun ExpenseAddBottomSheet(scope: CoroutineScope) {
                 label = "Value",
                 value = valueInput,
                 keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Done
+                    keyboardType = KeyboardType.Number, imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(
                     onNext = {
@@ -341,27 +367,25 @@ fun ExpenseAddBottomSheet(scope: CoroutineScope) {
                     expense.value.value = valueInput.toDouble()
                 },
             )
-            ExpenseAddButton(
-                onClick = {
-                    scope.launch {
-                        expensesList.add(
-                            0,
-                            expense.value,
-                        )
-                        Toast.makeText(context, "Record has been added.", Toast.LENGTH_SHORT).show()
-                        titleInput = ""
-                        categoryInput = ""
-                        valueInput = ""
-                        isExpenseInput = false
-                        expense.value = Expense(
-                            title = "",
-                            category = "",
-                            isExpense = false,
-                            value = 0.0,
-                        )
-                    }
+            ExpenseAddButton(onClick = {
+                scope.launch {
+                    expensesList.add(
+                        0,
+                        expense.value,
+                    )
+                    Toast.makeText(context, "Record has been added.", Toast.LENGTH_SHORT).show()
+                    titleInput = ""
+                    categoryInput = ""
+                    valueInput = ""
+                    isExpenseInput = false
+                    expense.value = Expense(
+                        title = "",
+                        category = "",
+                        isExpense = false,
+                        value = 0.0,
+                    )
                 }
-            )
+            })
         }
     }
 }
