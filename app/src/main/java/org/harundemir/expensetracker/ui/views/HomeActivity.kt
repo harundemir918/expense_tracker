@@ -76,362 +76,359 @@ class HomeActivity : ComponentActivity() {
             ExpenseScaffold()
         }
     }
-}
 
-fun calculateExpenseInfo(
-    incomeState: MutableState<Double>,
-    expenseState: MutableState<Double>,
-    balanceState: MutableState<Double>,
-) {
-    val income = expensesList.filter { !it.isExpense }.sumOf { it.value }
-    val expense = expensesList.filter { it.isExpense }.sumOf { it.value }
-    val balance = income - expense
+    private fun calculateExpenseInfo(
+        incomeState: MutableState<Double>,
+        expenseState: MutableState<Double>,
+        balanceState: MutableState<Double>,
+    ) {
+        val income = expensesList.filter { !it.isExpense }.sumOf { it.value }
+        val expense = expensesList.filter { it.isExpense }.sumOf { it.value }
+        val balance = income - expense
 
-    incomeState.value = income
-    expenseState.value = expense
-    balanceState.value = balance
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun HomeActivityPreview() {
-    ExpenseScaffold()
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ExpenseScaffold() {
-    val sheetState = SheetState(
-        initialValue = SheetValue.Hidden,
-        skipPartiallyExpanded = true,
-    )
-    val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = sheetState
-    )
-    val scope = rememberCoroutineScope()
-    BottomSheetScaffold(
-        scaffoldState = scaffoldState,
-        sheetContent = {
-            ExpenseAddBottomSheet(scope)
-        },
-        sheetPeekHeight = 0.dp,
-        topBar = {
-            ExpenseAppBar()
-        },
-        modifier = Modifier.pointerInput(Unit) {
-            detectTapGestures(
-                onTap = {
-                    scope.launch {
-                        if (!sheetState.isVisible) {
-                            sheetState.expand()
-                        } else {
-                            sheetState.hide()
-                        }
-                    }
-                },
-            )
-        },
-    ) { innerPadding ->
-        ExpenseBody(
-            modifier = Modifier.padding(innerPadding),
-            scope = scope,
-            sheetState = sheetState,
-        )
+        incomeState.value = income
+        expenseState.value = expense
+        balanceState.value = balance
     }
-}
 
-@ExperimentalMaterial3Api
-@Composable
-fun ExpenseAppBar() {
-    CenterAlignedTopAppBar(
-        title = { Text(text = "Expense", color = Color.White) },
-        colors = centerAlignedTopAppBarColors(
-            containerColor = Color(0xFF00BCD4),
+    @Preview(showBackground = true, showSystemUi = true)
+    @Composable
+    fun HomeActivityPreview() {
+        ExpenseScaffold()
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun ExpenseScaffold() {
+        val sheetState = SheetState(
+            initialValue = SheetValue.Hidden,
+            skipPartiallyExpanded = true,
         )
-    )
-}
-
-@Composable
-fun ExpenseBody(
-    modifier: Modifier = Modifier,
-    scope: CoroutineScope,
-    sheetState: SheetState,
-) {
-    ExpenseTrackerTheme {
-        Surface(
-            modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
-        ) {
-            Box {
-                Surface(modifier = Modifier.fillMaxWidth()) {
-                    Column {
-                        ExpenseInfo()
-                        ExpenseList()
-                    }
-                }
-                FloatingActionButton(
-                    onClick = {
+        val scaffoldState = rememberBottomSheetScaffoldState(
+            bottomSheetState = sheetState
+        )
+        val scope = rememberCoroutineScope()
+        BottomSheetScaffold(
+            scaffoldState = scaffoldState,
+            sheetContent = {
+                ExpenseAddBottomSheet(scope)
+            },
+            sheetPeekHeight = 0.dp,
+            topBar = {
+                ExpenseAppBar()
+            },
+            modifier = Modifier.pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = {
                         scope.launch {
-                            if (!sheetState.isVisible) {
-                                sheetState.expand()
-                            } else {
+                            if (sheetState.isVisible) {
                                 sheetState.hide()
                             }
                         }
                     },
-                    containerColor = Color(0xFF00BCD4),
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(16.dp)
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.White)
+                )
+            },
+        ) { innerPadding ->
+            ExpenseBody(
+                modifier = Modifier.padding(innerPadding),
+                scope = scope,
+                sheetState = sheetState,
+            )
+        }
+    }
+
+    @ExperimentalMaterial3Api
+    @Composable
+    fun ExpenseAppBar() {
+        CenterAlignedTopAppBar(
+            title = { Text(text = "Expense", color = Color.White) },
+            colors = centerAlignedTopAppBarColors(
+                containerColor = Color(0xFF00BCD4),
+            )
+        )
+    }
+
+    @Composable
+    fun ExpenseBody(
+        modifier: Modifier = Modifier,
+        scope: CoroutineScope,
+        sheetState: SheetState,
+    ) {
+        ExpenseTrackerTheme {
+            Surface(
+                modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
+            ) {
+                Box {
+                    Surface(modifier = Modifier.fillMaxWidth()) {
+                        Column {
+                            ExpenseInfo()
+                            ExpenseList()
+                        }
+                    }
+                    FloatingActionButton(
+                        onClick = {
+                            scope.launch {
+                                if (!sheetState.isVisible) {
+                                    sheetState.expand()
+                                }
+                            }
+                        },
+                        containerColor = Color(0xFF00BCD4),
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(16.dp)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.White)
+                    }
                 }
             }
         }
     }
-}
 
-@Composable
-fun ExpenseInfo() {
-    Surface(color = Color(0xFF00BCD4)) {
-        Column {
-            ExpenseInfoRow()
+    @Composable
+    fun ExpenseInfo() {
+        Surface(color = Color(0xFF00BCD4)) {
+            Column {
+                ExpenseInfoRow()
+            }
         }
     }
-}
 
-@Composable
-fun ExpenseInfoRow() {
-    val incomeState = remember {
-        mutableStateOf(0.0)
-    }
-    val expenseState = remember {
-        mutableStateOf(0.0)
-    }
-    val balanceState = remember {
-        mutableStateOf(0.0)
-    }
-
-    calculateExpenseInfo(
-        incomeState,
-        expenseState,
-        balanceState,
-    )
-
-    Row(
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp),
-    ) {
-        ExpenseInfoSection(title = "INCOME", value = incomeState.value)
-        ExpenseInfoSection(title = "EXPENSE", value = expenseState.value)
-        ExpenseInfoSection(title = "BALANCE", value = balanceState.value)
-    }
-}
-
-@Composable
-fun ExpenseInfoSection(title: String, value: Double) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = "₺$value", color = Color.White)
-        Text(text = title, color = Color.White, fontSize = 10.sp)
-    }
-}
-
-@Composable
-fun ExpenseList() {
-    LazyColumn {
-        items(expensesList) { item ->
-            ExpenseListCard(item)
+    @Composable
+    fun ExpenseInfoRow() {
+        val incomeState = remember {
+            mutableStateOf(0.0)
         }
-    }
-}
+        val expenseState = remember {
+            mutableStateOf(0.0)
+        }
+        val balanceState = remember {
+            mutableStateOf(0.0)
+        }
 
-@Composable
-fun ExpenseListCard(expense: Expense) {
-    val valueColor = if (!expense.isExpense) Color.Green else Color.Red
-    Surface(modifier = Modifier.fillMaxWidth()) {
+        calculateExpenseInfo(
+            incomeState,
+            expenseState,
+            balanceState,
+        )
+
         Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(100.dp),
+        ) {
+            ExpenseInfoSection(title = "INCOME", value = incomeState.value)
+            ExpenseInfoSection(title = "EXPENSE", value = expenseState.value)
+            ExpenseInfoSection(title = "BALANCE", value = balanceState.value)
+        }
+    }
+
+    @Composable
+    fun ExpenseInfoSection(title: String, value: Double) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = "₺$value", color = Color.White)
+            Text(text = title, color = Color.White, fontSize = 10.sp)
+        }
+    }
+
+    @Composable
+    fun ExpenseList() {
+        LazyColumn {
+            items(expensesList) { item ->
+                ExpenseListCard(item)
+            }
+        }
+    }
+
+    @Composable
+    fun ExpenseListCard(expense: Expense) {
+        val valueColor = if (!expense.isExpense) Color.Green else Color.Red
+        Surface(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Row {
+                    Box(
+                        contentAlignment = Alignment.Center, modifier = Modifier.background(
+                            color = Color(0xFF00BCD4), shape = CircleShape
+                        )
+                    ) {
+                        Icon(
+                            Icons.Default.ShoppingCart,
+                            contentDescription = "Expense Category Icon",
+                            tint = Color.White,
+                            modifier = Modifier.padding(8.dp),
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column {
+                        Text(text = expense.title)
+                        Text(text = expense.category, color = Color.Gray, fontSize = 12.sp)
+                    }
+                }
+                Text(
+                    text = "₺${expense.value}",
+                    color = valueColor,
+                )
+            }
+        }
+    }
+
+    @Composable
+    fun ExpenseAddBottomSheet(scope: CoroutineScope) {
+        val context = LocalContext.current
+
+        val focusManager = LocalFocusManager.current
+        var titleInput by remember { mutableStateOf("") }
+        var categoryInput by remember { mutableStateOf("") }
+        var isExpenseInput by remember { mutableStateOf(false) }
+        var valueInput by remember { mutableStateOf("") }
+
+        val expense = remember {
+            mutableStateOf(
+                Expense(
+                    title = "",
+                    category = "",
+                    isExpense = false,
+                    value = 0.0,
+                ),
+            )
+        }
+
+        Box(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                ExpenseTextField(
+                    label = "Title",
+                    value = titleInput,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = {
+                            focusManager.moveFocus(FocusDirection.Down)
+                        },
+                    ),
+                    onValueChange = {
+                        titleInput = it
+                        expense.value.title = titleInput
+                    },
+                )
+                ExpenseTextField(
+                    label = "Category",
+                    value = categoryInput,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = {
+                            focusManager.moveFocus(FocusDirection.Down)
+                        },
+                    ),
+                    onValueChange = {
+                        categoryInput = it
+                        expense.value.category = categoryInput
+                    },
+                )
+                ExpenseCheckbox(
+                    isExpenseInput = isExpenseInput,
+                    onCheckedChange = {
+                        isExpenseInput = it
+                        expense.value.isExpense = isExpenseInput
+                    },
+                )
+                ExpenseTextField(
+                    label = "Value",
+                    value = valueInput,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Number, imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = {
+                            focusManager.moveFocus(FocusDirection.Down)
+                        },
+                    ),
+                    onValueChange = {
+                        valueInput = it
+                        expense.value.value = valueInput.toDouble()
+                    },
+                )
+                ExpenseAddButton(onClick = {
+                    scope.launch {
+                        expensesList.add(
+                            0,
+                            expense.value,
+                        )
+                        Toast.makeText(context, "Record has been added.", Toast.LENGTH_SHORT).show()
+                        titleInput = ""
+                        categoryInput = ""
+                        valueInput = ""
+                        isExpenseInput = false
+                        expense.value = Expense(
+                            title = "",
+                            category = "",
+                            isExpense = false,
+                            value = 0.0,
+                        )
+                    }
+                })
+            }
+        }
+    }
+
+    @Composable
+    fun ExpenseTextField(
+        label: String, value: String, keyboardOptions: KeyboardOptions,
+        keyboardActions: KeyboardActions, onValueChange: (String) -> Unit,
+    ) {
+        TextField(
+            label = {
+                Text(text = label)
+            },
+            value = value,
+            onValueChange = onValueChange,
+            keyboardActions = keyboardActions,
+            keyboardOptions = keyboardOptions,
+            modifier = Modifier.padding(16.dp),
+        )
+    }
+
+    @Composable
+    fun ExpenseCheckbox(isExpenseInput: Boolean, onCheckedChange: (Boolean) -> Unit) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 24.dp)
+        ) {
+            Checkbox(
+                checked = isExpenseInput,
+                onCheckedChange = onCheckedChange,
+            )
+            Text(text = "Expense")
+        }
+    }
+
+    @Composable
+    fun ExpenseAddButton(
+        onClick: () -> Unit,
+    ) {
+        Button(
+            onClick = onClick,
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BCD4)),
             modifier = Modifier.padding(16.dp)
         ) {
-            Row {
-                Box(
-                    contentAlignment = Alignment.Center, modifier = Modifier.background(
-                        color = Color(0xFF00BCD4), shape = CircleShape
-                    )
-                ) {
-                    Icon(
-                        Icons.Default.ShoppingCart,
-                        contentDescription = "Expense Category Icon",
-                        tint = Color.White,
-                        modifier = Modifier.padding(8.dp),
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Column {
-                    Text(text = expense.title)
-                    Text(text = expense.category, color = Color.Gray, fontSize = 12.sp)
-                }
-            }
-            Text(
-                text = "₺${expense.value}",
-                color = valueColor,
-            )
+            Text(text = "Add")
         }
-    }
-}
-
-@Composable
-fun ExpenseAddBottomSheet(scope: CoroutineScope) {
-    val context = LocalContext.current
-
-    val focusManager = LocalFocusManager.current
-    var titleInput by remember { mutableStateOf("") }
-    var categoryInput by remember { mutableStateOf("") }
-    var isExpenseInput by remember { mutableStateOf(false) }
-    var valueInput by remember { mutableStateOf("") }
-
-    val expense = remember {
-        mutableStateOf(
-            Expense(
-                title = "",
-                category = "",
-                isExpense = false,
-                value = 0.0,
-            ),
-        )
-    }
-
-    Box(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()
-        ) {
-            ExpenseTextField(
-                label = "Title",
-                value = titleInput,
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = {
-                        focusManager.moveFocus(FocusDirection.Down)
-                    },
-                ),
-                onValueChange = {
-                    titleInput = it
-                    expense.value.title = titleInput
-                },
-            )
-            ExpenseTextField(
-                label = "Category",
-                value = categoryInput,
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = {
-                        focusManager.moveFocus(FocusDirection.Down)
-                    },
-                ),
-                onValueChange = {
-                    categoryInput = it
-                    expense.value.category = categoryInput
-                },
-            )
-            ExpenseCheckbox(
-                isExpenseInput = isExpenseInput,
-                onCheckedChange = {
-                    isExpenseInput = it
-                    expense.value.isExpense = isExpenseInput
-                },
-            )
-            ExpenseTextField(
-                label = "Value",
-                value = valueInput,
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Number, imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = {
-                        focusManager.moveFocus(FocusDirection.Down)
-                    },
-                ),
-                onValueChange = {
-                    valueInput = it
-                    expense.value.value = valueInput.toDouble()
-                },
-            )
-            ExpenseAddButton(onClick = {
-                scope.launch {
-                    expensesList.add(
-                        0,
-                        expense.value,
-                    )
-                    Toast.makeText(context, "Record has been added.", Toast.LENGTH_SHORT).show()
-                    titleInput = ""
-                    categoryInput = ""
-                    valueInput = ""
-                    isExpenseInput = false
-                    expense.value = Expense(
-                        title = "",
-                        category = "",
-                        isExpense = false,
-                        value = 0.0,
-                    )
-                }
-            })
-        }
-    }
-}
-
-@Composable
-fun ExpenseTextField(
-    label: String, value: String, keyboardOptions: KeyboardOptions,
-    keyboardActions: KeyboardActions, onValueChange: (String) -> Unit,
-) {
-    TextField(
-        label = {
-            Text(text = label)
-        },
-        value = value,
-        onValueChange = onValueChange,
-        keyboardActions = keyboardActions,
-        keyboardOptions = keyboardOptions,
-        modifier = Modifier.padding(16.dp),
-    )
-}
-
-@Composable
-fun ExpenseCheckbox(isExpenseInput: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 24.dp)
-    ) {
-        Checkbox(
-            checked = isExpenseInput,
-            onCheckedChange = onCheckedChange,
-        )
-        Text(text = "Expense")
-    }
-}
-
-@Composable
-fun ExpenseAddButton(
-    onClick: () -> Unit,
-) {
-    Button(
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BCD4)),
-        modifier = Modifier.padding(16.dp)
-    ) {
-        Text(text = "Add")
     }
 }
